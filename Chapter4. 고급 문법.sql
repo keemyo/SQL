@@ -103,7 +103,17 @@ SELECT AVG(price) AS '평균 가격' FROM buy;
 	-- 또는
 	SELECT CONVERT(AVG(price) , SIGNED) '평균 가격' FROM buy;
 
+SELECT CAST('2022$12$12' AS DATE);
+SELECT CAST('2022/12/12' AS DATE);
+SELECT CAST('2022%12%12' AS DATE);
+SELECT CAST('2022@12@12' AS DATE);
 
+SELECT num, CONCAT(CAST(price AS CHAR), 'X', CAST(amount AS CHAR), '=') 
+	'가격X수량', price*amount '구매액'
+FROM buy;
 
-
-
+-- 2) 암시적인 변환
+SELECT '100' + '200';
+SELECT CONCAT('100', '200');
+SELECT CONCAT(100, '200');
+SELECT 100 + '200';
