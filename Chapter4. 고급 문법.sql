@@ -64,7 +64,8 @@ CREATE TABLE member -- 회원 테이블
 	-- FLOAT: 4 바이트 | 소수점 아래 7자리까지 표현
     -- DOUBLE: 8 바이트 | 소수점 아래 15자리까지 표현 
     
--- 4) 날짜	-- DATE: 3 바이트 | YYYY-MM-DD 형식으로 사용 
+-- 4) 날짜
+	-- DATE: 3 바이트 | YYYY-MM-DD 형식으로 사용 
     -- TIME: 3 바이트 | 시간만 저장 HH:MM:SS 형식으로 사용 
     -- DATETIME: 8 바이트 | YYYY-MM-DD HH:MM:SS
     
@@ -110,10 +111,109 @@ SELECT CAST('2022@12@12' AS DATE);
 
 SELECT num, CONCAT(CAST(price AS CHAR), 'X', CAST(amount AS CHAR), '=') 
 	'가격X수량', price*amount '구매액'
-FROM buy;
+	FROM buy;
 
 -- 2) 암시적인 변환
 SELECT '100' + '200';
 SELECT CONCAT('100', '200');
 SELECT CONCAT(100, '200');
 SELECT 100 + '200';
+
+# 04-2 | 두 테이블을 묶는 조인 
+-- 지금까지 하나의 테이블을 다루는 작업을 위주로 공부했습니다.
+-- 이를 기반으로 지금부터는 두 개의 테이블이 서로 관계되어 있는 상태를 고려해서 학습을 진행하겠습니다.
+
+## 04-2-1 | 내부 조인 
+-- 1) 일대 관계의 이해 
+	-- 두 테이블의 조인을 위해서는 테이블이 일대다(one to many) 관계로 연결되어야 합니다. 
+    -- 머넞 일대다 관계에 대해서 알아보겠습니다.
+    
+-- 2) 내부 조인의 기본 
+USE market_db;
+SELECT * FROM buy INNER JOIN member ON buy.mem_id = member.mem_id
+WHERE buy.mem_id = 'GRL';
+
+SELECT * FROM buy INNER JOIN member ON buy.mem_id = member.mem_id;
+
+-- 3) 내부 조인의 간결한 표현 
+SELECT 
+	mem_id, mem_name, prod_name, addr, CONCAT(phone1, phone2) '연락처' 
+FROM buy
+	INNER JOIN member
+    ON buy.mem_id = member.mem_id;
+
+-- 테이블_이름.열_이름 형식으로 작성해보겠습니다.
+SELECT buy.mem_id, member.mem_name, buy.prod_name, member.addr,
+	CONCAT(member.phone1, member.phone2) '연락처'
+FROM buy
+	INNER JOIN member
+    ON buy.mem_id = member.mem_id;
+
+-- 별침 
+SELECT B.mem_id, M.mem_name, B.prod_name, M.addr, 
+		CONCAT(M.phone1, M.phone2) '연락처'
+FROM buy B
+	INNER JOIN member M
+    ON B.mem_id = M.mem_id;
+
+-- 4)내부 조인의 활용
+SELECT M.mem_id, M.mem_name, B.prod_name, M.addr
+FROM buy B
+	INNER JOIN member M
+    ON B.mem_id = M.mem_id
+ORDER BY M.mem_id;
+
+## 04-2-2 | 외부 조인
+-- 내부 조인은 두 테이블에 모두 데이터가 있어야만 결과가 나옵니다.
+-- 이와 달리 외부 조인은 한쪽에만 데이터가 있어도 결과가 나옵니다.alter
+
+-- 1) 외부 조인의 기본
+	-- 외부조인은 두 테이블을 조인할 때 필요한 내용이 한쪽 테이블에만 있어도 결과를 추출할 수 있다.
+    -- 자주 사용되지는 않지만 가끔 사용됨으로 알아두면 좋다
+    
+    -- LEFT OUTER JOIN은 '왼쪽 테이블의 내용을 모두 출력한다'.
+SELECT M.mem_id, M.mem_name, B.prod_name, M.addr
+FROM member M
+	LEFT OUTER JOIN buy B
+    ON M.mem_id = B.mem_id
+ORDER By M.mem_id;
+
+-- 2) RIGHT OUTER JOIN으로 출력하며 오른쪽을 전부
+SELECT DISTINCT M.mem_id, B.prod_name, M.addr
+FROM buy B
+	RIGHT OUTER JOIN member M
+	ON M.mem_id = B.mem_id    
+ORDER BY M.mem_id;
+
+-- 3) 외부 조인의 활용
+	-- 내부 조인으로 매한 기록이 있는 회원들의 목록만 추출해 감사문을 보냈었다.
+	-- 이번에는 반대로 회원가입만 하고, 한번도 구매한적이 없는 회원의 목록을 구해보자
+    
+SELECT DISTINCT M.mem_id, B.prod_name, M.mem_name, M.addr
+FROM member M
+	LEFT OUTER JOIN buy B
+    ON M.mem_id = B.mem_id
+WHERE B.prod_name IS NULL
+ORDER BY M.mem_id;
+
+-- 4) 상호 조인
+	-- ON 구문을 사용할 수 없다.
+    -- 결과의 내용은 의미가 없습니다. 랜덤으로 조인하기 때문입니다.
+    -- 상호 조인의 주 용도는 테스트하기 위해 대용량의 데이터를 생성할 때입니다.
+SELECT * 
+FROM buy 
+CROSS JOIN member;
+    
+SELECT COUNT(*) '데이터 개수'
+	FROM sakila.inventory
+		CROSS JOIN world.city;
+        
+CREATE TABLE cross_table
+	SELECT * 
+		FROM sakila.actor -- 200건
+			CROSS JOIN world.country; -- 239건
+SELECT * FROM cross_table LIMIT 5;        
+
+-- 5) 자체 조인 | 자신이 자신과 조인한다는 의미 
+USE market_db;
+CREATE TABLE 
