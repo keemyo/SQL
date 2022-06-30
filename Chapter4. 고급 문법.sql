@@ -228,4 +228,53 @@ INSERT INTO emp_table VALUES('인사부장', '관리이사', '2222-2');
 INSERT INTO emp_table VALUES('개발팀장', '정보이사', '3333-1');
 INSERT INTO emp_table VALUES('개발주임', '정보이사', '3333-1-1');
 
-ㄴSELECT
+-- 별칭 달기
+SELECT A.emp "직원", B.emp "직속상관", B.phone "직속상관연락처"
+FROM emp_table A
+	INNER JOIN emp_table B
+    ON A.manager = B.emp
+WHERE A.emp = '경리부장';
+
+# 04-3 | SQL 프로그래밍
+	-- SQL은 아펏 배운 것처럼 SELECT, INSERT, UPDATE, DELETE 등을 사용합니다.
+    -- 그래서 C, 자바, 파이썬 같은 프로그래밍 언어와는 많이 달라보입니다.
+    -- 하지만 필요시 SQL만으로도 멋진 프로그램을 만들 수 있다.
+
+## 04-3-1 | IF 문
+
+-- 1) IF 문의 기본형식
+DROP PROCEDURE IF EXISTS ifProc1;
+DELIMITER $$
+CREATE PROCEDURE ifProc1()
+BEGIN
+	IF 100 = 100 THEN
+		SELECT '100은 100과 같습니다.';
+	END IF;
+END $$
+DELIMITER ;
+CALL ifProc1();
+
+-- 2) IF ~ ELSE 문
+DROP PROCEDURE IF EXISTS ifProc2;
+DELIMITER $$
+CREATE PROCEDURE ifProc2()
+BEGIN 	
+	DECLARE myNum INT;
+    SET myNum = 200;
+    IF myNum = 100 Then
+		SELECT '100입니다.' ; 
+	ELSE 
+		SELECT '100이 아닙니다.';
+	END IF;
+END $$
+DELIMITER ; 
+CALL ifProc2();
+
+-- 3) IF 문의 활용
+
+dd
+
+
+
+    
+    
