@@ -370,7 +370,7 @@ FROM buy B
 GROUP BY M.mem_id
 ORDER BY SUM(price*amount) DESC;
 
-SELECT M.em_id, M.mem_name, SUM(price*amount) "총구매액",
+SELECT M.mem_id, M.mem_name, SUM(price*amount) "총구매액",
 	CASE
 		WHEN (SUM(price*amount) >= 1500) THEN '최우수고객'
         WHEN (SUM(price*amount) >= 1000) THEN '우수고객'
@@ -378,3 +378,36 @@ SELECT M.em_id, M.mem_name, SUM(price*amount) "총구매액",
         ELSE '유령고객'
 	END '회원동급'
 FROM buy B
+	RIGHT OUTER JOIN member M
+		ON B.mem_id = M.mem_id
+GROUP BY M.mem_id 
+ORDER BY SUM(price*amount) DESC;
+
+## 04-4-2 | WHILE 
+
+DROP PROCEDURE IF EXISTS whileProc;
+DELIMITER $$
+CREATE PROCEDURE whileProc()
+BEGIN
+	DECLARE i INT; -- 1에서 100까지 증가할 변수 
+    DECLARE hap INT ; -- 더한 값을 누적할 변수 
+	
+    SET i = 1;
+    SET hap = 0;
+    
+    WHILE (i <=100) DO
+		SET hap = hap + i;
+        SET i = i + 1;
+	END WHILE ;
+    
+    SELECT '1부터 100까지의 합 ==>', hap;
+END $$
+DELIMITER ;
+CALL whileProc();
+
+-- 1) WHILE 문의 응용 | ITERATE문과 LEAVE 문을 활용할 수 있다.
+
+	-- ITERATE[레이블]: 지정한 레이블로 가서 계속 진행한다.
+    -- LEAVE[레이블]: 지정한 레이블을 빠져 나갑니다. 즉 WHILE문이 종료됩니다.
+    
+DROP PROCEDURE IF EXISTS 
