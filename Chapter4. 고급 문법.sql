@@ -271,10 +271,110 @@ DELIMITER ;
 CALL ifProc2();
 
 -- 3) IF 문의 활용
-
-dd
-
-
-
+DROP PROCEDURE IF EXISTS ifProc3;
+DELIMITER $$
+CREATE PROCEDURE ifProc3()
+BEGIN
+	-- 변수를 준비함 
+	DECLARE debutDate DATE; -- 데뷔 일자 
+    DECLARE curDate DATE; -- 오늘 
+    DECLARE days INT; -- 활동한 일수 
     
+    SELECT debut_date INTO debutDate
+		FROM market_db.member
+        WHERE mem_id = 'APN';
+        
+    SET curDATE = CURRENT_DATE();  -- 현재 날씨 
+	SET days = DATEDIFF(curDATE, debutDate); -- 날씨의 차이, 일 단위 
     
+	IF (days/365) >= 5 THEN
+		SELECT CONCAT('데뷔한 지', days, '일이나 지났습니다. 핑순이들 축하합니다!');         
+	ELSE 
+		SELECT '데뷔한 지' +  days + '일 밖에 안되었네요. 핑순이들 화이팅~'; 
+        
+	END IF;
+END $$
+DELIMITER ;
+CALL ifProc3();
+
+-- 여기서 잠깐 
+	-- CURRENT_DATE(): 오늘 날짜를 알려줍니다.
+    -- CURRENT_TIMESTAMP(): 오늘 날짜 및 시간을 함께 알려주니다.
+    -- DATEDIFF(날짜1, 날짜2): 날짜2부터 날짜1까지 일수로 몇일인지 알려줍니다.
+    
+SELECT CURRENT_DATE(), DATEDIFF('2021-12-31', '2000-1-1');
+
+# 04-4 | CASE 문 
+
+## 04-4-1 | 
+	-- IF 문은 참 아니면 거짓 두가지만 있기 때문에 2중 분기라는 용어를 사용합니다.
+    -- CASE는 2가지 이상의 여러 가지 경우일 때 처리가 가능하므로 '다중 분기'라고 부릅니다.
+
+DROP PROCEDURE IF EXISTS caseProc;
+DELIMITER $$
+CREATE PROCEDURE caseProc()
+BEGIN 
+	-- 변수 선언과 지정
+	DECLARE point INT;
+    DECLARE credit CHAR(1);
+    SET point = 96 ;
+    
+    CASE 
+		WHEN point >= 90 THEN
+			SET credit = 'A';
+		WHEN point >= 80 THEN
+			SET credit = 'B';
+		WHEN point >= 70 THEN
+			SET credit = 'C';
+		WHEN point >= 60 THEN
+			SET credit ='D';
+		ELSE
+			SET credit = 'F';
+		END CASE ;
+		SELECT CONCAT('취득점수 ==>', point), CONCAT('학점==>', credit);
+END $$
+DELIMITER ;
+CALL caseProc();
+    
+-- 1) CASE 문의 활용 
+	-- 아래와 같이 회원들의 등급을 나눠보려고한다.
+		-- 1500 이상 : 최우수 고객 
+        -- 1000 ~ 1499: 우수 고객 
+        -- 1 ~ 999: 일반 고객 
+        -- 0 이하: 유령 고객 
+
+-- 1-1) STEP 1
+SELECT mem_id, SUM(price*amount) " 총 구매액" 
+FROM buy
+GROUP BY mem_id;        
+
+-- 1-2) STEP 2
+SELECT mem_id, SUM(price*amount) "총 구매액"
+FROM buy 
+GROUP BY mem_id 
+ORDER BY SUM(price*amount) DESC; 
+
+-- 1-3) STEP 3
+SELECT B.mem_id, M.mem_name, SUM(price*amount) "총 구매액"
+FROM buy B 
+	INNER JOIN member M
+    ON B.mem_id = M.mem_id 
+GROUP BY B.mem_id
+ORDER BY SUM(price*amount) DESC; 
+
+-- 1-4
+SELECT M.mem_id, M.mem_name, Sum(price*amount) '총구매액'
+FROM buy B 
+	RIGHT OUTER JOIN member M
+    ON B.mem_id = M.mem_id
+GROUP BY M.mem_id
+ORDER BY SUM(price*amount) DESC;
+
+SELECT M.em_id, M.mem_name, SUM(price*amount) "총구매액",
+	CASE
+		WHEN (SUM(price*amount) >= 1500) THEN '최우수고객'
+        WHEN (SUM(price*amount) >= 1000) THEN '우수고객'
+        WHEN (SUM(price*amount) >= 1) THEN '일반고객'
+        ELSE '유령고객'
+	END '회원동급'
+FROM buy B
