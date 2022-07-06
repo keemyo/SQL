@@ -409,5 +409,47 @@ CALL whileProc();
 
 	-- ITERATE[레이블]: 지정한 레이블로 가서 계속 진행한다.
     -- LEAVE[레이블]: 지정한 레이블을 빠져 나갑니다. 즉 WHILE문이 종료됩니다.
+
+
+DROP PROCEDURE IF EXISTS whileProc2;
+DELIMITER $$
+CREATE PROCEDURE whileProc2() 
+BEGIN 
+	DECLARE i INT ; -- 1에서 100까지 증가할 변수 
+    DECLARE hap INT; -- 더한 값을 누적할 변수 
     
-DROP PROCEDURE IF EXISTS 
+    SET i = 1;
+    SET hap = 0;
+    
+    myWhile:
+    WHILE (i <= 100) DO
+		IF (i%4 = 0) THEN 
+			SET i = i + 1;
+			ITERATE myWhile; -- 지정한 label 문으로 가서 계속 진행 
+		END IF;
+    
+		SET hap = hap + i ; 
+		IF (hap > 1000) THEN
+			LEAVE myWhile; -- 지정한 label 문을 떠남. 즉 while 종료 
+		END IF;
+		SET i = i + 1;
+	END WHILE ;
+    
+    SELECT "1부터 100까지의 합(4의 배수 제외), 1000 넘으면 종료 ==>", hap;
+END $$
+DELIMITER ;
+CALL whileProc2();
+
+
+# 04-5 | 동적 SQL
+	-- SQL 문은 내용이 고정되어 있는 경우가 대부분입니다. 
+    -- 하지만 상황에 따라 내용 변경이 필요할 때 동적 SQL을 사용하면 실시간 적용 가능
+    
+## 04-05-1 | PREPARE와 EXECUTE 
+	-- PREPARE는 SQL 문을 실행하지는 않고 미리 준비만 해놓고, EXECUTE는 준비한 SQL문을 실행합니다.
+    -- 그리고 실행 후에는 DEALLOCATE PREPARE로 문장을 해제해주는 것이 바람직 합니다.
+    
+use market_db; 
+PREPARE myQuery FROM 'SELECT * FROM member WHERE mem_id = "BLK"'; 
+
+
