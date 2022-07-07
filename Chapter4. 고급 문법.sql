@@ -451,5 +451,21 @@ CALL whileProc2();
     
 use market_db; 
 PREPARE myQuery FROM 'SELECT * FROM member WHERE mem_id = "BLK"'; 
+EXECUTE myQuery;
+DEALLOCATE PREPARE myQuery;
+
+## 04-05-2 | 동적 SQL의 활용 
+-- PREPARE 문에서는 ?로 향후에 입력될 값을 비워 놓고, EXECUTE에서 USING으로 ?에 값을 전달할 수 있다. 
 
 
+	-- 1) 일반 SQL에서 변수는 @변수명으로 지정하는데 별도의 선언은 없어도 됩니다. "스토어드 프로시저"에서 변수는 DECLARE로 선언한 후에 사용 
+DROP TABLE IF EXISTS gate_table; 
+CREATE TABLE gate_table (id INT AUTO_INCREMENT PRIMARY KEY, entry_time DATETIME);
+
+SET @curDate = CURRENT_TIMESTAMP() ; -- 현재 날짜와 시간 
+
+PREPARE myQuery FROM 'INSERT INTO gate_table VALUES(NULL, ?)'; 
+EXECUTE myQuery USING @curDate;
+DEALLOCATE PREPARE myQuery;
+
+SELECT * FROM gate_table;
