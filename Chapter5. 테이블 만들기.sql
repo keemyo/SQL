@@ -278,4 +278,7 @@ INSERT INTO member VALUES('RED', '레드벨벳', 161, '054');
 INSERT INTO member VALUES('SPC', '우주소녀', default, default);
 SELECT * FROM member; 
 
+# 05-3 | 가상의 테이블: 뷰 
+
+
     
