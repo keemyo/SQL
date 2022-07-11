@@ -90,3 +90,192 @@ INSERT INTO buy VALUES(NULL, 'BLK', '지갑', NULL, 30, 2);
 INSERT INTO buy VALUES(NULL, 'BLK', '맥북프로','디지털', 1000, 1);
 INSERT INTO buy VALUES(NULL, 'APN', '아이폰', '디지털', 200, 1);
 
+# 05-2 | 제약조건으로 테이블을 견고하게 
+-- 테이블에는 기본 키, 외래 키와 같은 제약조건을 설정할 수 있습니다. 
+-- 제약조건은 테이블을 구성하는 핵심 개념으로 이를 잘 이해하고 활용한다면 좋은 코드를 짤 수 있다.
+
+## 05-2-1 | 제약조건의 기본 개념과 종류
+	-- 제약조건(Constraint)은 데이터의 무결성을 지키기 위해 제한하는 조건
+		-- PRIMARY KEY 제약 조건
+        -- FOREIGN KEY 제약 조건 
+        -- UNIQUE 제약조건 
+        -- DEFAULT 정의 
+        -- NULL 값 허용 
+	
+## 05-2-1 | 기본 키 제약조건 
+
+-- 1) CREATE TABLE에서 설정 기본 키 제약조건 
+USE naver_db;
+DROP TABLE IF EXISTS buy, member; 
+CREATE TABLE member 
+( mem_id CHAR(8) NOT NULL PRIMARY KEY,
+  mem_name VARCHAR(10) NOT NULL,
+  height TINYINT UNSIGNED NULL 
+  ); 
+	-- 회원 테이블(member) 및 구매 테이블(buy) 열을 일부 생략해서 단순화시키겠습니다. 
+    
+DESCRIBE member;
+
+-- 2) DROP 
+DROP TABLE IF EXISTS member; 
+CREATE TABLE member 
+( mem_id CHAR(8) NOT NULL,
+  mem_name VARCHAR(10) NOT NULL,
+  height TINYINT UNSIGNED NULL,
+  PRIMARY KEY (mem_id)
+) ;  
+
+-- 3) ALTER TABLE에서 설정하는 기본 키 제약 조건 
+DROP TABLE IF EXISTS member; 
+CREATE TABLE member
+( mem_id CHAR(8) NOT NULL,
+  mem_name VARCHAR(10) NOT NULL, 
+  height TINYINT UNSIGNED NULL
+); 
+
+ALTER TABLE member 
+	ADD CONSTRAINT 
+    PRIMARY KEY (mem_id); 
+    
+	-- 앞서 CREATE TABLE 안에 PRIMARY KEY를 설정한 거솨 지금 ALTER TABLE로 PRIMARY KEY를 지정한 것은 동일     
+DROP TABLE IF EXISTS member;
+CREATE TABLE member 
+( mem_id CHAR(8) NOT NULL,
+  mem_name VARCHAR(10) NOT NULL,
+  height TINYINT UNSIGNED NULL,
+  CONSTRAINT PRIMARY KEY PK_member_mem_id (mem_id)
+  ); 
+
+## 05-2-2 | 외래 키 제약조건 
+
+-- 1) CREATE TABLE에서 설정하는 외래 키 제약조건 
+
+DROP TABLE IF EXISTS buy, member;
+CREATE TABLE member 
+( mem_id CHAR(8) NOT NULL PRIMARY KEY,
+  mem_name VARCHAR(10) NOT NULL,
+  height TINYINT UNSIGNED NULL);
+  
+CREATE TABLE buy 
+( num INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
+  mem_id CHAR(8) NOT NULL,
+  prod_name CHAR(6) NOT NULL,
+  FOREIGN KEY(mem_id) REFERENCES member(mem_id)
+  );
+
+-- 외래 키 의 형식은 FOREIGN KEY(열_이름) REFERENCES 기준_테이블(열_이름) 
+
+-- 2) ALTER TABLE에서 설정하는 외래 제약 조건 
+DROP TABLE IF EXISTS buy;
+
+CREATE TABLE buy
+( num INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
+  mem_id CHAR(8) NOT NULl,
+  prod_name CHAR(6) NOT NULL 
+  );
+
+ALTER TABLE buy
+	ADD CONSTRAINT 
+    FOREIGN KEY(mem_id)
+    REFERENCES member(mem_id) ;
+    
+-- 3) 기준 테이블의 열이 변경될 경우 
+SELECT * FROM member; 
+SELECT * FROM buy;
+
+INSERT INTO member VALUES('BLK', '블랙핑크', 163);
+INSERT INTO buy VALUES(NULL, 'BLK', '지갑');
+INSERT INTO buy VALUES(NULL, 'BLK', '맥북');   
+
+SELECT M.mem_id, M.mem_name, B.prod_name
+FROM buy B
+	INNER JOIN member M
+    ON B.mem_id = M.mem_id ; 
+    
+UPDATE member SET mem_id = 'PINK' WHERE mem_id = 'BLK';
+
+DELETE FROM member WHERE mem_id = 'BLK';
+
+-- 물려있는 값들이 있기 때문에 업데이트 되지 않는다.
+-- ON UPDATE CASCADE / ON DELETE CASCADE 문 
+
+DROP TABLE IF EXISTS buy;
+CREATE TABLE buy
+( num INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
+  mem_id CHAR(8) NOT NULL,
+  prod_name CHAR(6) NOT NULL );
+  
+ALTER TABLE buy
+	ADD CONSTRAINT
+    FOREIGN KEY(mem_id) REFERENCES member(mem_id) 
+    ON UPDATE CASCADE 
+    ON DELETE CASCADE;
+    
+INSERT INTO buy VALUES(NULL, 'BLK', '지갑');
+INSERT INTO buy VALUES(NULL, 'BLK', '맥북');
+
+UPDATE member SET mem_id = 'PINK' WHERE mem_id = 'BLK';
+
+SELECT M.mem_id, M.mem_name, B.prod_name
+FROM buy B
+	INNER JOIN member M
+    ON B.mem_id = M.mem_id;
+
+DELETE FROM member WHERE mem_id = 'PINK';
+
+SELECT * FROM buy;
+
+## 05-2-3 | 기타 제약 조건 
+
+-- 1) 고유 키 제약 조건 
+	-- 고유키(Unique) 제약조건은 '중복되지 않는 유일한 값'을 입력해야하는 조건입니다. 
+    -- 차이점은 고유 키 제약조건은 NULL 값을 허용한다는 것입니다. 
+    
+DROP TABLE IF EXISTS buy, member; 
+CREATE TABLE member 
+( mem_id CHAR(8) NOT NULL PRIMARY KEY,
+  mem_name VARCHAR(10) NOT NULL, 
+  height TINYINT UNSIGNED NULL,
+  email CHAR(30) NULL UNIQUE ); 
+
+INSERT INTO member VALUES('BLK', '블랙핑크', 163, 'pink@gmail.com');
+INSERT INTO member VALUES('TWC', '오마이걸', 167, NULL);
+INSERT INTO member VALUES('APN', '에이핑크', 164, 'pink@gmail.com');
+
+-- 2) 체크 제약 조건 
+
+DROP TABLE IF EXISTS  member;
+CREATE TABLE member 
+( mem_id CHAR(8) NOT NULL PRIMARY KEY,
+  mem_name VARCHAR(10) NOT NULL,
+  height TINYINT UNSIGNED NULL CHECK (height>= 100),
+  phone1 CHAR(3) NULL);
+  
+INSERT INTO member VALUES('BLK', '블랙핑크', 163, NULL);
+INSERT INTO member VALUES('TWC', '트와이스', 99, NULL);
+
+SELECT * FROM member;
+
+ALTER TABLE member 
+	ADD CONSTRAINT
+	CHECK (phone1 IN ('02', '031', '032', '054', '055', '061'));
+    
+INSERT INTO member VALUES('TWC', '트와이스', 167, '02'); -- 가능 
+INSERT INTO member VALUES('OMY', '오마이걸', 167, '010'); -- 불가능  
+
+-- 3) 기본값 정의 
+DROP TABLE IF EXISTS member; 
+CREATE TABLE member 
+( mem_id CHAR(8) NOT NULL PRIMARY KEY, 
+  mem_name VARCHAR(10) NOT NULL, 
+  height TINYINT UNSIGNED NULL DEFAULT 160,
+  phone1 CHAR(3) NULL ) ;
+
+ALTER TABLE member
+	ALTER COLUMN phone1 SET DEFAULT '02';
+
+INSERT INTO member VALUES('RED', '레드벨벳', 161, '054');
+INSERT INTO member VALUES('SPC', '우주소녀', default, default);
+SELECT * FROM member; 
+
+    
