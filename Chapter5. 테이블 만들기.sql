@@ -279,6 +279,62 @@ INSERT INTO member VALUES('SPC', '우주소녀', default, default);
 SELECT * FROM member; 
 
 # 05-3 | 가상의 테이블: 뷰 
+USE market_db ; 
+CREATE VIEW v_member 
+	AS 
+	SELECT mem_id, mem_name, addr FROM member;
+    
+SELECT * FROM v_member;
 
+SELECT mem_name, addr FROM v_member 
+WHERE addr IN ('서울', '경기');
 
+SELECT B.mem_id, M.mem_name, B.prod_name, M.addr,
+	   CONCAT(M.phone1, M.phone2) '연락처'
+FROM buy B
+	INNER JOIN member M
+    ON B.mem_id = M.mem_id;
+
+CREATE VIEW v_memberbuy 
+AS 
+	SELECT B.mem_id, M.mem_name, B.prod_name, M.addr,
+			CONCAT(M.phone1,"-",M.phone2) '연락처'
+		FROM buy B
+			INNER JOIN member M
+            ON B.mem_id = M.mem_id;
+## 05-3-1 | 뷰의 실제 작동 
+
+-- 1) 뷰의 실제 생성, 수정, 삭제 
+USE market_db; 
+CREATE VIEW v_viewtest1 
+AS 
+	SELECT B.mem_id, "Member ID", M.mem_name AS "Member name",
+    B.prod_name "Product Name", 
+		CONCAT(M.phone1, M.phone2) AS "Office Phone"
+	FROM buy B 
+		INNER JOIN member M 
+        ON B.mem_id = M.mem_id ; 
+SELECT DISTINCT `Member ID`, `Member Name` FROM v_viewtest1; 
+
+-- 2) ALTER VIEW 
+ALTER VIEW v_viewtest1
+AS 
+	SELECT B.mem_id '회원 아이디', M.mem_name AS '회원 이름',
+		   B.prod_name '제품 이름', 
+           CONCAT(M.phone1, M.phone2) AS '연락처'           
+	   FROM buy B	
+		   INNER JOIN member M
+		   ON B.mem_id = M.mem_id;
+SELECT DISTINCT `회원 아이디`, `회원 이름` FROM v_viewtest1;
+       
+DROP VIEW v_viewtest1;       
+		
+-- 3) 뷰의 정보 확인 
+USE market_db ;
+CREATE OR REPLACE VIEW v_viewtest2 
+AS 
+	SELECT mem_id, mem_name, addr FROM member; 
+
+DESCRIBE v_viewtest2;
+DESCRIBE member; 	   
     
