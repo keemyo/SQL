@@ -337,4 +337,50 @@ AS
 
 DESCRIBE v_viewtest2;
 DESCRIBE member; 	   
+
+SHOW CREATE VIEW v_viewtest2;
+
+-- 4) 뷰를 통한 데이터의 수정/삭제 
+	-- 뷰를 통해서 테이블의 데이터를 수정할 수도 있습니다.
+	-- v_member 뷰를 통해 데이터를 수정해보겠습니다.
+UPDATE v_member SET addr = '부산' WHERE mem_id = 'BLK';
+
+INSERT INTO v_member(mem_id, mem_name, addr) VALUES('BTS', '방탄소년단', '경기');
+	-- mem_number 열은 NOT NULL로 설정되어서 반드시 입력해줘야 합니다. 
+    -- 현재의 v_member에서는 mem_number 열을 참조하고 있지 않으므로 값을 입력할 방법이 없습니다.
     
+CREATE VIEW v_height167 
+	AS
+		SELECT * FROM member WHERE height >= 167;
+	SELECT * FROM v_height167; 
+    
+DELETE FROM v_height167 WHERE height < 167;
+
+-- 5) 뷰를 통한 데이터의 입력 : WHERE절이 있기 때문에 INSERT를 해도 입력되지 않음
+INSERT INTO v_height167 VALUES('TRA', '티아라', 6, '서울', NULL, NULL, 159, '2005-01-01');
+SELECT * FROM v_height167;
+
+	-- 이럴 떄 예약어 "WITH CHECK OPTION"을 통해 뷰에 설정된 값의 범위가 벗어나는 값은 입력되지 않도록 할 수 있다. 
+ALTER VIEW v_height167 
+AS 
+	SELECT * FROM member WHERE height >= 167 
+		WITH CHECK OPTION ;
+	
+INSERT INTO v_height167 VALUES("TOB", '텔레토비', 4, '영국', NULL, NULL, 140, '1995-01-01'); 
+
+-- 하나의 테이블로 만든 뷰를 단순 뷰라 하고, 두 개 이상의 테이블로 만든 뷰를 복합뷰라고합니다.
+-- 복합 뷰는 주로 두 테이블을 조인한 결과로 뷰를 만들 때 사용합니다. 
+CREATE VIEW v_complex 
+AS
+	SELECT B.mem_id, M.mem_name, B.prod_name, M.addr
+    FROM buy B 
+		INNER JOIN member M
+		ON B.mem_id = M.mem_id ; 
+    
+-- 6) 뷰가 참조하는 테이블의 삭제
+
+DROP TABLE IF EXISTS buy, member; 
+
+SELECT * FROM v_height167;
+
+CHECK TABLE v_height167;
